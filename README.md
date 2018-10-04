@@ -19,7 +19,7 @@ world_folder = r".\.minecraft\saves\New World"
 # or a multi player world from your server.
 world_folder = "./minecraft/world" 
 
-# Pass the folder to `minecrafty.World`.
+# Pass the folder to `minecrafty.World()`.
 world = World(world_folder)
 ```
 
@@ -36,7 +36,7 @@ level_file = r".\.minecraft\saves\New World\level.dat"
 # or a multi player world from your server.
 level_file = "./minecraft/world/level.dat" 
 
-# Pass the folder to `minecrafty.World`.
+# Pass the folder to `minecrafty.Level()`.
 level = Level(level_file)
 ```
 
@@ -47,7 +47,7 @@ level = Level(level_file)
 print(world.level.nbt_tree["Data"]["LevelName"])
 New World
 
-# Or if you loaded the `Level()` directly:
+# Or if you loaded the `Level()` directly.
 print(level.nbt_tree["Data"]["LevelName"])
 New World
 ```
