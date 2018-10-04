@@ -8,7 +8,7 @@ class LevelFileDecodeError(ValueError):
     pass
 
 
-class LevelFile:
+class Level:
     file: str
     nbt_tree: NbtTag
     is_compressed: bool
