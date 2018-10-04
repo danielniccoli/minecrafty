@@ -34,7 +34,7 @@ from minecrafty import Level
 level_file = r".\.minecraft\saves\New World\level.dat" 
 
 # or a multi player world from your server.
-level_file = "./minecraft/world" 
+level_file = "./minecraft/world/level.dat" 
 
 # Pass the folder to `minecrafty.World`.
 level = Level(level_file)
