@@ -25,6 +25,9 @@ class Level:
         elif isinstance(level_file, io.BufferedIOBase):
             self.file = level_file.name
             self._buffer = io.BytesIO(level_file.read())
+        else:
+            raise TypeError(f"{__class__} requires type {type(str)} or {type(io.BufferedIOBase)}, "
+                            f"not '{type(path_to_world_folder)}'")
 
         magic_bytes = self._buffer.getbuffer()[:2].tobytes()
         self.is_compressed = True if magic_bytes[:2] == b"\x1f\x8b" else False
