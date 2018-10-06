@@ -28,9 +28,11 @@ class Regions(dict):
                 raise TypeError("Unexpected file extension {item[-4:]}")
 
 
-class Region:
+class Region(dict):
+    _INDEX_SIZE = 4
+    _TIMESTAMP_SIZE = 4
     _CHUNKS_IN_REGION = 32 * 32
-    _SECTOR_LENGTH = 4 * 1024
+    _SECTOR_SIZE = 4096
 
     file: str
 
@@ -50,17 +52,20 @@ class Region:
             raise TypeError(f"{__class__} requires type {type(str)} or {type(io.BufferedIOBase)}, "
                             f"not '{type(path_to_world_folder)}'")
 
-        _indices_buffer = io.BytesIO(self._buffer.read(4 * self._CHUNKS_IN_REGION))
-        _timestamps_buffer = io.BytesIO(self._buffer.read(4 * self._CHUNKS_IN_REGION))
-        _data_buffer = io.BytesIO(self._buffer.read())
+        _indices_buffer = io.BytesIO(self._buffer.read(self._INDEX_SIZE * self._CHUNKS_IN_REGION))
+        _timestamps_buffer = io.BytesIO(self._buffer.read(self._TIMESTAMP_SIZE * self._CHUNKS_IN_REGION))
 
+        total_length = 0
         # Read chunk index (32(x) * 32(z) * 4 bytes)
         for x, z in [(x, z) for x in range(32) for z in range(32)]:
-            offset = int.from_bytes(_indices_buffer.read(3), "big", signed=False) * self._SECTOR_LENGTH
-            length = int.from_bytes(_indices_buffer.read(1), "big", signed=False) * self._SECTOR_LENGTH
+            offset = int.from_bytes(_indices_buffer.read(3), "big", signed=False) * self._SECTOR_SIZE
+            size = int.from_bytes(_indices_buffer.read(1), "big", signed=False) * self._SECTOR_SIZE
             timestamp = int.from_bytes(_timestamps_buffer.read(4), "big", signed=False)
-            if not offset and not length:
+            if not offset and not size:
                 continue  # Chunk does not exist
-            datetime.datetime.fromtimestamp(timestamp)
+            timestamp = datetime.datetime.fromtimestamp(timestamp)
 
-            self[x, z] = Chunk(_data_buffer)
+            self._buffer.seek(offset)
+            self[x, z] = Chunk(self._buffer)
+
+        i = 0

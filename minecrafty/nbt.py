@@ -3,6 +3,7 @@ import gzip
 import io
 import typing
 from abc import abstractmethod, ABCMeta
+from struct import unpack_from
 
 TAG_END: int = 0
 TAG_BYTE: int = 1
@@ -235,24 +236,6 @@ class TagDouble(NbtNumericalTag):
     name: str = None
 
 
-class TagByteArray(NbtTag, list):
-    type: int = TAG_BYTE_ARRAY
-    has_name: bool = True
-
-    def parse(self, stream: typing.BinaryIO = None):
-        super().parse(stream)
-        while stream:
-            array_length = int.from_bytes(stream.read(_SIZE_LIST_LENGTH_IDENTIFIER), "big")
-            for i in range(array_length):
-                self.append(TagByte(stream))
-
-    def __repr__(self):
-        pass
-
-    def __str__(self):
-        pass
-
-
 class TagString(NbtTag):
     type: int = TAG_STRING
     has_name: bool = True
@@ -265,6 +248,23 @@ class TagString(NbtTag):
 
     def __str__(self):
         return self.value
+
+
+class TagByteArray(NbtTag, bytearray):
+    type: int = TAG_BYTE_ARRAY
+    has_name: bool = True
+    name: str = None
+
+    def parse(self, stream: typing.BinaryIO = None):
+        super().parse(stream)
+        array_length = int.from_bytes(stream.read(_SIZE_LIST_LENGTH_IDENTIFIER), "big")
+        self[:] = stream.read(array_length)
+
+    def __repr__(self):
+        pass
+
+    def __str__(self):
+        pass
 
 
 class TagList(NbtTag, list):
@@ -287,7 +287,7 @@ class TagCompound(NbtTag, dict):
 
     def parse(self, stream: typing.BinaryIO = None):
         super().parse(stream)
-        while stream:
+        while True:
             next_tag_type = int.from_bytes(stream.read(_SIZE_TYPE_IDENTIFIER), "big")
             if next_tag_type == TAG_END:
                 break
@@ -300,28 +300,25 @@ class TagCompound(NbtTag, dict):
         return f"<TagCompound name='{self.name}' [..HELP..]>"
 
 
-class TagIntArray(NbtTag):
+class TagIntArray(NbtTag, list):
     type: int = TAG_INT_ARRAY
     has_name: bool = True
 
     def parse(self, stream: typing.BinaryIO = None):
         super().parse(stream)
-        while stream:
-            array_length = int.from_bytes(stream.read(_SIZE_LIST_LENGTH_IDENTIFIER), "big")
-            for i in range(array_length):
-                self.append(TagInt(stream))
+        array_length = int.from_bytes(stream.read(_SIZE_LIST_LENGTH_IDENTIFIER), "big")
+        self[:] = unpack_from(f">{array_length}i", stream.read(array_length * TagInt.data_size))
+        i = 0
 
 
-class TagLongArray(NbtTag):
+class TagLongArray(NbtTag, list):
     type: int = TAG_LONG_ARRAY
     has_name: bool = True
 
     def parse(self, stream: typing.BinaryIO = None):
         super().parse(stream)
-        while stream:
-            array_length = int.from_bytes(stream.read(_SIZE_LIST_LENGTH_IDENTIFIER), "big")
-            for i in range(array_length):
-                self.append(TagLong(stream))
+        array_length = int.from_bytes(stream.read(_SIZE_LIST_LENGTH_IDENTIFIER), "big")
+        self[:] = unpack_from(f">{array_length}q", stream.read(array_length * TagLong.data_size))
 
 # class Nbt:
 #     def __init__(self, buffer):
