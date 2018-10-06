@@ -67,5 +67,3 @@ class Region(dict):
 
             self._buffer.seek(offset)
             self[x, z] = Chunk(self._buffer)
-
-        i = 0
