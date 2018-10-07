@@ -317,7 +317,7 @@ class TagLongArray(NbtTag, list):
 
     def parse(self, stream: typing.BinaryIO = None):
         super().parse(stream)
-        array_length = int.from_bytes(stream.read(_SIZE_LIST_LENGTH_IDENTIFIER), "big")
+        array_length = int.from_bytes(stream.read(_SIZE_LIST_LENGTH_IDENTIFIER), "little")
         self[:] = unpack_from(f">{array_length}q", stream.read(array_length * TagLong.data_size))
 
 # class Nbt:
